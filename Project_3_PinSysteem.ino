@@ -255,7 +255,6 @@ void balanceLogic(int accountNr){
     else if (customKey == 'C') {
       handmatig = false;
       money = "70";
-      Serial.println();
       break;
     }
     else if (customKey == 'D') {
