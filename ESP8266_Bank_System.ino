@@ -23,6 +23,7 @@ MySQL_Connection conn((Client *)&client);
 // Create an instance of the cursor passing in the connection
 MySQL_Cursor cur = MySQL_Cursor(&conn);
 
+
 String content;
 String code;
 String money;
@@ -158,15 +159,15 @@ void loop() {
           int afschrijven = money.toInt();
           Serial.print(money);
           Serial.println(" sins gepint!");
-          balance = String(int(balance) - afschrijven);
+          user_balance = String(user_balance.toInt() - afschrijven);
 
 
           if(localUser){
             char UPDATE_SQL[150] = "UPDATE `atm_user` SET `balance` = '"; // 45 characters long
-            int index = 45
+            int index = 45;
             int i = 0;
-            for(index; index < index + balance.length(); index++){
-              UPDATE_SQL[index] = balance[i];
+            for(index; index < index + user_balance.length(); index++){
+              UPDATE_SQL[index] = user_balance[i];
               i++;
             }
             String lastPart = "' WHERE `atm_user`.`user_id` = '"; // 33 characters long
@@ -182,7 +183,8 @@ void loop() {
             }
             index++;
             UPDATE_SQL[index] = '\'';
-            cursor->execute(INSERT_SQL);
+            MySQL_Cursor *cursor = new MySQL_Cursor(&conn);
+            cursor->execute(UPDATE_SQL);
           }
           else{
             // communiceer naar de noob om het geld af te schrijven
@@ -209,9 +211,9 @@ void loop() {
      break;       
      }
      else if(notTimeOut){
-       error2++;
+       error++;
        Serial.print("Aantal verkeerde pogingen: ");
-       Serial.println(error2);
+       Serial.println(error);
      }
    }
 }
@@ -238,7 +240,7 @@ Serial.println("Vul nu je pincode in.");
   code = "";
   bool invoeren = true;
   while(invoeren == true){
-    customKey = keypadKey();
+    //customKey = keypadKey();
     if (customKey == 'A') {
       invoeren = false;
       quit = true;
@@ -285,7 +287,7 @@ Serial.println("Vul nu je pincode in.");
 
 
 void balanceLogic(){
-  int balance = int(user_balance);
+  int balance = user_balance.toInt();
   long prevMillis = millis();
   char customKey;
   money = "";
@@ -294,7 +296,7 @@ void balanceLogic(){
   Serial.println("Wil je je saldo zien druk dan op B.");
   Serial.println("Druk op C om snel 70 te pinnen in de vorm van 50 en 20");
   while(invoeren == true){
-    customKey = keypadKey();
+    //customKey = keypadKey();
     if (customKey == 'A') {
       invoeren = false;
       quit = true;
@@ -346,7 +348,7 @@ void balanceLogic(){
     if(hoofdmenu) return;
   }
   bool back;
-  enough = authMoney(money, balance1);
+  enough = authMoney(money);
   if(enough && handmatig){
     back = chooseBills(money);
   }
@@ -359,8 +361,9 @@ void balanceLogic(){
   }
 }
 
-bool authMoney(String money, int balance){
+bool authMoney(String money){
   int cash = money.toInt();
+  int balance = user_balance.toInt();
   if(cash > balance){
     Serial.println("Je hebt niet zoveel saldo op je rekening staan!");
     return false;
@@ -381,7 +384,7 @@ bool chooseBills(String money){
   char customKey;
   long prevMillis = millis();
   while(cash != 0){
-    customKey = keypadKey();
+    //customKey = keypadKey();
     if (customKey == 'A') {
       quit = true;
       return false;
